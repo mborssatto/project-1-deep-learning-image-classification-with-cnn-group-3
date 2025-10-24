@@ -1,4 +1,4 @@
-# 🧠 AI Bootcamp Project — Image Classification with Transfer Learning
+# 🧠 AI Bootcamp Project — Image Classification 
 
 ### Team G3 — Mariana • Cristina • Adrian • Kira  
 
