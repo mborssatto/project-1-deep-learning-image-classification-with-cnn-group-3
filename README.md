@@ -11,6 +11,19 @@ This project explores **image classification** using the **CIFAR-10 dataset**, c
 After testing 19 model variations, the **winning model** used **Transfer Learning with VGG16** as a base model and achieved an **accuracy of 86%** on the test set.
 
 ---
+## 📂 Project files
+
+
+| File / Folder | Description |
+|----------------|--------------|
+| 📂 **history** | Contains unpolished files with different models we tried |
+| **Group 3 week 3 presentation.pdf** | Final presentation summarizing project results |
+| **README.md** | Project overview and documentation (this file) |
+| **Team internal results.xlsx** | Unpolished file used internally to track our learnings |
+| **main BEST_VGG16.ipynb** | Final notebook with our winning **Trainer Learning** model 👈 *start here* |
+| **main inhouse CNN.ipynb** | Final notebook with our in-house **CNN model** |
+
+---
 
 ## 🚀 Project Overview
 
