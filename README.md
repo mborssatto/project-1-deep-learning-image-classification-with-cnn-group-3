@@ -1,153 +1,100 @@
-# CIFAR-10 Image Classification with VGG16 (Transfer Learning)
+# 🧠 AI Bootcamp Project — Image Classification with Transfer Learning
 
-This notebook trains and evaluates an image classifier on **CIFAR-10** using **VGG16** with transfer learning. It includes data preprocessing, light augmentation, a frozen-backbone phase, and optional fine-tuning of the top VGG blocks. Plots and metrics (accuracy, confusion matrix) are generated for the report/presentation.
-
-> If you prefer another backbone (e.g., EfficientNetB0 or MobileNetV2), see **“Swap the backbone”** below.
+### Team G3 — Mariana • Cristina • Adrian • Kira  
 
 ---
 
-## ✅ What this notebook does
+## 📘 Executive Summary
 
-- Loads **CIFAR-10** (60k images, 10 classes).
-- Splits into **train/val/test**.
-- **Normalizes** pixels and applies **light augmentation**.
-- Builds **VGG16** (`include_top=False`, ImageNet weights) + small classifier head.
-- Trains in two phases:
-  1) **Feature extraction** (backbone frozen).  
-  2) **Fine-tuning** (unfreeze top layers with low LR).
-- Evaluates with accuracy, per-class metrics, and a confusion matrix.
-- Saves the best model (`.keras` format).
+This project explores **image classification** using the **CIFAR-10 dataset**, containing 60,000 color images (32×32 pixels) divided into 10 categories (e.g., airplane, car, cat, dog).  
+
+After testing 19 model variations, the **winning model** used **Transfer Learning with VGG16** as a base model and achieved an **accuracy of 86%** on the test set.
 
 ---
 
-## 📦 Requirements
+## 🚀 Project Overview
 
-- Python 3.9+
-- TensorFlow 2.11+ (or 2.14+ recommended)
-- NumPy, Matplotlib, scikit-learn
+| Model | Approach | Accuracy | Notes |
+|--------|-----------|-----------|-------|
+| **Baseline CNN** | Custom convolutional model | ~69% | Initial version |
+| **Optimized CNN** | Added batch normalization, dropout, early stopping | ~75–80% | Reduced overfitting |
+| **Transfer Learning (VGG16)** | Fine-tuned pretrained model | **86%** | Best overall performance |
 
-```bash
-pip install "tensorflow>=2.11" numpy matplotlib scikit-learn
-```
-
-> GPU highly recommended (CUDA/cuDNN set up if using NVIDIA).
+**Trade-off:** Transfer learning required more preprocessing and tuning, but significantly improved performance and training stability.
 
 ---
 
-## 🚀 Quick start
+## 🧩 Dataset & Preprocessing
 
-1. **Clone / open** the project and launch Jupyter / Colab.
-2. Open **`BEST_VGG16_mainTL_test.ipynb`**.
-3. Run all cells in order.
+**Dataset:** [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html)  
+- 60,000 images (50,000 train / 10,000 test)  
+- 10 classes, RGB format  
 
-The notebook will:
-- Download CIFAR-10 automatically.
-- Train the model (feature extraction → fine-tuning).
-- Print validation/test accuracy and show plots.
-
----
-
-## 🧱 Notebook structure (what each section does)
-
-1. **Imports & config**  
-   Set random seeds, image size, batch size, and paths.
-
-2. **Data loading & split**  
-   Load CIFAR-10 → create train/val/test splits (e.g., 80/10/10).
-
-3. **Preprocessing & augmentation**  
-   - Resize **32×32 → 224×224** (VGG16 expects 224).  
-   - Use `tf.keras.applications.vgg16.preprocess_input`.  
-   - Apply light aug: `RandomFlip`, small `RandomRotation`, `RandomZoom`.
-
-4. **Model: VGG16 backbone + head**  
-   - `VGG16(include_top=False, weights="imagenet")`, `GlobalAveragePooling2D`, `Dropout`, and a `Dense(10, softmax)` head.
-
-5. **Training phase 1 — Feature extraction**  
-   - Freeze backbone, train head with `Adam(lr=1e-3)`.  
-   - Callbacks: `EarlyStopping`, `ReduceLROnPlateau`, `ModelCheckpoint`.
-
-6. **Training phase 2 — Fine-tuning**  
-   - Unfreeze last **N** conv layers, recompile with **lower LR** (e.g., `1e-5`).  
-   - Train a few more epochs.
-
-7. **Evaluation & visualization**  
-   - Validation & test accuracy.  
-   - `classification_report` & confusion matrix.  
-   - Learning curves (train vs val).
-
-8. **Save model**  
-   - Saves best checkpoint as `vgg16_cifar10.keras`.
+**Steps:**
+1. Normalized images to `[0, 1]` range.  
+2. Converted labels into categorical (one-hot encoded).  
+3. Split data into training, validation, and test sets (80/10/10).  
+4. Avoided excessive data augmentation (caused distortions on small images).  
 
 ---
 
-## 📈 Expected results (fill with your run)
+## 🤖 Models & Learning Process
 
-- **Val accuracy (feature extraction):** ~`XX%`
-- **Val accuracy (fine-tuned):** ~`YY%`
-- **Test accuracy (best):** ~`ZZ%`
-- Common confusions: e.g., **cat ↔ dog**, **truck ↔ automobile**
+### 1️⃣ Baseline CNN
+- **Layers:** Convolution → MaxPooling → Dense  
+- **Results:** Validation accuracy ≈ 69%  
+- Served as the foundation for later experiments.
 
-> Replace `XX/YY/ZZ` with your actual numbers after running.
+### 2️⃣ Improved CNN
+- **Changes tested:**
+  - Added **batch normalization** → improved convergence  
+  - Added **dropout layers** → reduced overfitting  
+  - Increased epochs (15 → 100) with **early stopping**  
+- **Results:** More stable validation accuracy across datasets.
 
----
-
-## 🔁 Swap the backbone (optional)
-
-If you want native **32×32** support (no 224 resize) or a lighter model:
-
-- **EfficientNetB0**
-  ```python
-  from tensorflow.keras.applications.efficientnet import EfficientNetB0, preprocess_input
-  base = EfficientNetB0(include_top=False, weights="imagenet", input_shape=(32,32,3), pooling="avg")
-  ```
-- **MobileNetV2**
-  ```python
-  from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input
-  base = MobileNetV2(include_top=False, weights="imagenet", input_shape=(32,32,3), pooling="avg")
-  ```
-
-Keep the rest (head, callbacks, two-phase training) the same; just switch the `preprocess_input` and `input_shape`.
+### 3️⃣ Transfer Learning (Winning Model)
+- **Base model:** `VGG16` (pretrained on ImageNet)  
+- **Additional layers:** Global Average Pooling, Batch Normalization, Dropout  
+- **Training setup:**  
+  - Fine-tuned top layers only  
+  - Used Adam optimizer and early stopping  
+- **Results:**  
+  - Validation loss: 0.34  
+  - Validation accuracy: **86.15%**
 
 ---
 
-## 🔧 Hyperparameters you can tweak
+## 📊 Evaluation & Learnings
 
-- **Augmentation**: keep light for tiny images (rotation ≤ 0.1, zoom ≤ 0.1).
-- **Dropout**: 0.3–0.5 after GAP helps generalization.
-- **Unfreeze depth**: last 4–12 conv layers; lower LR (`1e-5 … 3e-6`).
-- **Batch size**: compare 32 vs 64 (32 sometimes generalizes better).
-- **Optimizer**: `Adam` or `AdamW` (if available).
+**What worked:**
+- Batch normalization and dropout significantly improved performance.  
+- Early stopping helped avoid overfitting.  
+- Transfer learning drastically improved accuracy and reduced training time.  
 
----
+**What didn’t:**
+- Data augmentation decreased accuracy due to image distortion.  
+- Not all pretrained models (MobileNetV2, EfficientNetB0) performed equally well.  
 
-## 🧪 Using a different dataset (e.g., Animals-10)
-
-Point `image_dataset_from_directory` to your folder and keep the same pipeline. If class folders are in Italian (e.g., `cane`, `gatto`), training is fine; translate labels only for plots/reports.
-
----
-
-## 🛠 Troubleshooting
-
-- **Shape mismatch**: VGG16 needs **224×224×3** → ensure resize and `preprocess_input`.  
-- **`compile()` error**: Re-compile after changing `trainable` flags.  
-- **Overfitting**: Add/raise `Dropout`, use light aug, early stopping, or unfreeze fewer layers.  
-- **Underfitting**: Train longer, unfreeze more top layers, or increase LR slightly.
+**Key Learnings:**
+- Iterative experimentation—changing one parameter at a time—was essential.  
+- Proper model selection (VGG16) can yield substantial gains even with small datasets.  
 
 ---
 
-## 📚 References
+## 🛠️ Tech Stack
 
-- **CIFAR-10**: Krizhevsky, 2009  
-- **VGG16**: Simonyan & Zisserman, 2014  
-- `tf.keras.applications.vgg16.preprocess_input`  
-- Keras docs: callbacks (`EarlyStopping`, `ModelCheckpoint`, `ReduceLROnPlateau`)
+- **Language:** Python  
+- **Libraries:**  
+  - TensorFlow / Keras  
+  - NumPy  
+  - Pandas  
+  - Matplotlib / Seaborn  
 
 ---
 
-## 📄 License & Acknowledgments
+## 👩‍💻 Team
 
-- Dataset: **CIFAR-10** (University of Toronto).  
-- Pretrained weights: **ImageNet**.  
-- Code built on **TensorFlow / Keras**.  
-- Use under your course/project license.
+**Mariana Borssatto**  
+**Cristina Insignares**  
+**Adrián A. H.**  
+**Kira Redberg**
